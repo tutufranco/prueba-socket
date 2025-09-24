@@ -1,4 +1,4 @@
-import { Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Logger} from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -9,6 +9,9 @@ import {
 import { Server, Socket } from 'socket.io';
 import { buildSendTripPassanger, buildTripChange } from './helpers';
 import { TripStatusV2 } from './interface';
+import { OnEvent } from '@nestjs/event-emitter';
+import { GlobalEvent } from 'src/global-event.dto';
+
 
 // Interface para datos de ubicación
 interface LocationData {
@@ -17,7 +20,8 @@ interface LocationData {
   timestamp?: number;
 }
 @WebSocketGateway({
-  cors: { origin: '*' }, // solo para pruebas
+  cors: { origin: '*' },
+  namespace: 'events', // solo para pruebas
 })
 export class ChatGateway {
   @WebSocketServer() server: Server;
@@ -41,39 +45,32 @@ export class ChatGateway {
 
   handleConnection(client: Socket) {
     this.logger.log(`Cliente conectado: ${client.id}`);
-    this.logger.log('📤 Enviando datos del viaje al cliente...');
+    this.logger.log(':outbox_tray: Enviando datos del viaje al cliente...');
     
     // Reiniciar contador para nuevo cliente
     this.locationUpdateCount = 0;
     this.tripChange = buildTripChange({tripStatus: TripStatusV2.idle});
-    
+    this.logger.log(':outbox_tray: Enviando datos del viaje al cliente...');
     client.emit('get-trip-response', this.trip);
+    this.logger.log(':outbox_tray: Enviando datos del viaje al cliente...');
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Cliente desconectado: ${client.id}`);
   }
 
-  @SubscribeMessage('mensaje')
-  onMensaje(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    this.logger.log(`Mensaje de ${client.id}: ${JSON.stringify(data)}`);
-    // reenviar a todos
-    this.server.emit('mensaje', { from: client.id, ...data });
-    // opcional: responder solo al que envió
-    return true;
-  }
   @SubscribeMessage('send-change-trip')
   onSendChangeTrip(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
     this.logger.log(`Mensaje de ${client.id}: ${JSON.stringify(data)}`);
     // reenviar a todos
-    this.server.emit('send-change-trip', { from: client.id, ...data });
+    // this.server.emit('send-change-trip', { from: client.id, ...data });
     // opcional: responder solo al que envió
     return true;
   }
 
   @SubscribeMessage('driver-location')
   onDriverLocation(@MessageBody() data: LocationData, @ConnectedSocket() client: Socket) {
-    this.logger.log(`📍 Ubicación recibida del cliente ${client.id}: lat=${data.lat}, lon=${data.lon}`);
+    this.logger.log(`:round_pushpin: Ubicación recibida del cliente ${client.id}: lat=${data.lat}, lon=${data.lon}`);
     
     // Incrementar contador de actualizaciones
     this.locationUpdateCount++;
@@ -82,27 +79,24 @@ export class ChatGateway {
     const currentStateIndex = Math.min(this.locationUpdateCount - 1, this.tripStateSequence.length - 1);
     const nextState = this.tripStateSequence[currentStateIndex];
     
-    this.logger.log(`🔄 Actualización #${this.locationUpdateCount} - Progresando a: ${nextState}`);
+    this.logger.log(`:arrows_counterclockwise: Actualización #${this.locationUpdateCount} - Progresando a: ${nextState}`);
     
     // Actualizar el estado del viaje
     this.tripChange = buildTripChange({ 
       tripStatus: nextState,
-      amount_driver: 2000 + (this.locationUpdateCount * 100), // Incrementar monto
-      amount_passenger: 2000 + (this.locationUpdateCount * 100),
-      amount_passanger: 2000 + (this.locationUpdateCount * 100),
-      payment_type: 'card'
+    
     });
     
-    this.logger.log('📤 Enviando tripChange actualizado...');
+    this.logger.log(':outbox_tray: Enviando tripChange actualizado...');
     this.logger.log(`Estado del viaje: ${this.tripChange.tripStatus}`);
-    this.logger.log(`Monto actualizado: $${this.tripChange.amount_driver}`);
+  
     
     // Responder con el tripChange actualizado
     client.emit('send-change-trip', this.tripChange);
     
     // Si llegamos al final de la secuencia, reiniciar
     if (this.locationUpdateCount >= this.tripStateSequence.length) {
-      this.logger.log('🎉 Viaje completado! Reiniciando secuencia...');
+      this.logger.log(':tada: Viaje completado! Reiniciando secuencia...');
       this.locationUpdateCount = 0;
     }
     
@@ -115,6 +109,14 @@ export class ChatGateway {
     };
   }
 
+ @OnEvent('global.event')
+  async emitGlobalEvent(data: GlobalEvent) {
+    this.logger.debug(`Emitting global event: ${data.event}`);
+    this.logger.debug(`Data: ${JSON.stringify(data.data, null, 4)}`);
+    this.server.emit(data.event, data.data);
+
+    // this.server.emit('send-change-trip', this.tripChange);
+  }
 
 
  

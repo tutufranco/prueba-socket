@@ -185,22 +185,13 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
    */
   export function buildTripChange({
     tripStatus = interfaces.TripStatusV2.idle,
-    amount_driver = 1000,
-    amount_passenger = 1000,
-    amount_passanger = 1000,
-    payment_type = 'cash'
+    
   }: {
     tripStatus?: interfaces.TripStatusV2;
-    amount_driver?: number;
-    amount_passenger?: number;
-    amount_passanger?: number;
-    payment_type?: string;
+   
   } = {}): interfaces.tripChange {
     return {
       tripStatus,
-      amount_driver,
-      amount_passenger,
-      amount_passanger,
-      payment_type,
+    
     };
   }

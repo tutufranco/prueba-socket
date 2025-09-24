@@ -44,10 +44,7 @@ export interface tripStops {
 
 export interface tripChange {
   tripStatus: TripStatusV2;
-  amount_driver: number;
-  amount_passenger: number;
-  amount_passanger: number;
-  payment_type: string;
+
 }
 
 export interface carLocation {
