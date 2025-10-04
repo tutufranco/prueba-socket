@@ -10,13 +10,18 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
 
     const tripChangeData: interfaces.tripChange =  buildTripChange({tripStatus: trip_status});
 
+    const filtersData: interfaces.filtersIntravel = buildFilters();
+
+    const paymentData: interfaces.PaymentInTravel = buildPayment();
 
     const sendTripPassangerData: interfaces.sendTripPassanger = {
       service_id: 'service-789',
       tripStops: tripStopsData,
-      sendDriver: driverData,
-      carLocation: carLocationData,
+      driverProfile: driverData,
+      carDriverLocation: carLocationData,
       tripChange: tripChangeData,
+      filters: filtersData,
+      payment: paymentData,
     };
 
     return sendTripPassangerData;
@@ -29,13 +34,19 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
     const passengerData: interfaces.tripPassanger = buildTripPassanger();
 
     const tripChangeData: interfaces.tripChange =  buildTripChange({tripStatus: trip_status});
+
+    const filtersData: interfaces.filtersIntravel = buildFilters();
+
+    const paymentData: interfaces.PaymentInTravel = buildPayment();
   
 
     const sendTripDriverData: interfaces.sendTripDriver = {
       service_id: 'service-456',
       tripStops: tripStopsData,
-      sendPassanger: passengerData,
+      passengerProfile: passengerData,
       tripChange: tripChangeData,
+      filters: filtersData,
+      payment: paymentData,
     };
 
     return sendTripDriverData;
@@ -140,14 +151,14 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
    * Función para crear tripPassanger
    */
   export function buildTripPassanger({
-    passanger_id = 'passenger-demo',
+    passenger_id = 'passenger-demo',
     full_name = 'Pasajero Demo',
     qualifications = 4.5,
     selfie = 'https://i.imgur.com/passenger-demo.jpg',
     total_trips = 50,
     phone = '+54 9 11 0000-0000'
   }: {
-    passanger_id?: string;
+    passenger_id?: string;
     full_name?: string;
     qualifications?: number;
     selfie?: string;
@@ -155,7 +166,7 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
     phone?: string;
   } = {}): interfaces.tripPassanger {
     return {
-      passanger_id,
+      passenger_id,
       full_name,
       qualifications,
       selfie,
@@ -185,13 +196,57 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
    */
   export function buildTripChange({
     tripStatus = interfaces.TripStatusV2.idle,
-    
+    passenger_boarded = false,
+    payment_confirmed = false,
   }: {
     tripStatus?: interfaces.TripStatusV2;
-   
+    passenger_boarded?: boolean;
+    payment_confirmed?: boolean;
   } = {}): interfaces.tripChange {
     return {
       tripStatus,
-    
+      passenger_boarded,
+      payment_confirmed,
+    };
+  }
+
+  /**
+   * Función para crear filters
+   */
+  export function buildFilters({
+    luggage = true,
+    pets = false,
+    packages = true,
+    wheelchair = false,
+  }: {
+    luggage?: boolean;
+    pets?: boolean;
+    packages?: boolean;
+    wheelchair?: boolean;
+  } = {}): interfaces.filtersIntravel {
+    return {
+      luggage,
+      pets,
+      packages,
+      wheelchair,
+    };
+  }
+
+  /**
+   * Función para crear payment
+   */
+  export function buildPayment({
+    payment_type = 'cash',
+    amount_passenger = 1500.0,
+    amount_driver = 1200.0,
+  }: {
+    payment_type?: string;
+    amount_passenger?: number;
+    amount_driver?: number;
+  } = {}): interfaces.PaymentInTravel {
+    return {
+      payment_type,
+      amount_passenger,
+      amount_driver,
     };
   }

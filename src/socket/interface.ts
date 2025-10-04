@@ -1,16 +1,27 @@
 export interface sendTripDriver {
     service_id: string;
     tripStops: tripStops;
-    sendPassanger: tripPassanger;
+    passengerProfile: tripPassanger;
     tripChange: tripChange;
+    filters: filtersIntravel;
+    payment: PaymentInTravel;
   }
 
 export interface sendTripPassanger {
   service_id: string;
   tripStops: tripStops;
-  sendDriver: tripDriver;
-  carLocation: carLocation;
+  driverProfile: tripDriver;
+  carDriverLocation: carLocation;
   tripChange: tripChange;
+  filters: filtersIntravel;
+  payment: PaymentInTravel;
+}
+
+
+export interface PaymentInTravel {
+  payment_type: string;
+  amount_passenger: number;
+  amount_driver: number;
 }
 
 export interface tripDriver {
@@ -19,19 +30,26 @@ export interface tripDriver {
   qualifications: number;
   selfie: string;
   total_trips: number;
-  car_model: string
-  car_color: string
-  car_plate: string
-  phone: string
+  car_model: string;
+  car_color: string;
+  car_plate: string;
+  phone: string;
+}
+
+export interface filtersIntravel {
+  luggage: boolean;
+  pets: boolean;
+  packages: boolean;
+  wheelchair: boolean;
 }
 
 export interface tripPassanger {
-    passanger_id: string;
+    passenger_id: string;
     full_name: string;
     qualifications: number;
     selfie: string;
     total_trips: number;
-    phone: string
+    phone: string;
   }
 
 
@@ -44,7 +62,8 @@ export interface tripStops {
 
 export interface tripChange {
   tripStatus: TripStatusV2;
-
+  passenger_boarded: boolean;
+  payment_confirmed: boolean;
 }
 
 export interface carLocation {
