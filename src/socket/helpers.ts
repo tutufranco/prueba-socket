@@ -22,6 +22,8 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
       tripChange: tripChangeData,
       filters: filtersData,
       payment: paymentData,
+      incident: [],
+      message: [],
     };
 
     return sendTripPassangerData;
@@ -47,6 +49,8 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
       tripChange: tripChangeData,
       filters: filtersData,
       payment: paymentData,
+      incident: [],
+      message: [],
     };
 
     return sendTripDriverData;
@@ -205,8 +209,11 @@ export function buildSendTripPassanger({trip_status = interfaces.TripStatusV2.id
   } = {}): interfaces.tripChange {
     return {
       tripStatus,
+      tripStatusText: interfaces.getTripStatusText(tripStatus),
       passenger_boarded,
       payment_confirmed,
+      message_number: 0,
+      incident_number: 0,
     };
   }
 
