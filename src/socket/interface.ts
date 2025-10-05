@@ -35,6 +35,24 @@ export interface tripMessage {
   message_timestamp: string;
 }
 
+export interface tripRequest {
+  pickup_location: {
+    address: string;
+    lat: number;
+    lon: number;
+  };
+  dropoff_location: {
+    address: string;
+    lat: number;
+    lon: number;
+  };
+  passenger_id?: string;
+  passenger_name?: string;
+  passenger_rating?: number;
+  payment_method?: string;
+  notes?: string;
+}
+
 export interface tripAvailable {
   trip_id: string;
   passenger_id: string;

@@ -25,6 +25,7 @@ import {
   TRIP_MESSAGE_D_SEND,
   GET_MESSAGES_INCIDENTS,
   ALL_MESSAGES,
+  TRIP_REQUEST,
   TRIP_AVAILABLE,
   TRIP_ACCEPT,
   TRIP_REJECT,
@@ -103,6 +104,61 @@ export class ChatGateway {
 
   handleDisconnect(client: Socket) {
     this.logger.log(`❌ Cliente desconectado: ${client.id}`);
+  }
+
+  // Evento para solicitar viaje (pasajero)
+  @SubscribeMessage(TRIP_REQUEST)
+  onTripRequest(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+    this.logger.log(`🚕 Pasajero ${client.id} solicita viaje: ${JSON.stringify(data)}`);
+    
+    // Calcular estimaciones (en producción, usar un servicio real)
+    const estimatedDistance = this.calculateDistance(
+      data.pickup_location.lat,
+      data.pickup_location.lon,
+      data.dropoff_location.lat,
+      data.dropoff_location.lon
+    );
+    const estimatedDuration = Math.round(estimatedDistance * 3); // ~3 min por km
+    const estimatedFare = Math.round(estimatedDistance * 350); // $350 por km
+    
+    // Crear viaje
+    const tripData = {
+      trip_id: `trip-${Date.now()}`,
+      passenger_id: data.passenger_id || client.id,
+      passenger_name: data.passenger_name || 'Pasajero',
+      passenger_rating: data.passenger_rating || 5.0,
+      pickup_location: data.pickup_location,
+      dropoff_location: data.dropoff_location,
+      estimated_distance: estimatedDistance,
+      estimated_duration: estimatedDuration,
+      estimated_fare: estimatedFare,
+    };
+    
+    // Cambiar estado a "searching"
+    this.tripChange = buildTripChange({
+      tripStatus: TripStatusV2.searching,
+      passenger_boarded: false,
+      payment_confirmed: false
+    });
+    
+    // Notificar al pasajero que se está buscando conductor
+    client.emit(SEND_CHANGE_TRIP, this.tripChange);
+    this.logger.log(`📤 Estado cambiado a "searching" para pasajero ${client.id}`);
+    
+    // Buscar conductores disponibles y enviar viaje
+    // En producción, aquí buscarías conductores cercanos en tu base de datos
+    // Por ahora, broadcast a todos los conductores conectados
+    this.broadcastTripToDrivers(tripData);
+    
+    return {
+      success: true,
+      message: 'Buscando conductor disponible...',
+      trip_id: tripData.trip_id,
+      estimated_distance: estimatedDistance,
+      estimated_duration: estimatedDuration,
+      estimated_fare: estimatedFare,
+      tripChange: this.tripChange
+    };
   }
 
   // Evento de conexión para pasajero
@@ -517,6 +573,33 @@ export class ChatGateway {
     this.logger.debug(`🌐 Emitting global event: ${data.event}`);
     this.logger.debug(`📦 Data: ${JSON.stringify(data.data, null, 4)}`);
     this.server.emit(data.event, data.data);
+  }
+
+  // =============== MÉTODOS PRIVADOS ===============
+
+  /**
+   * Calcular distancia entre dos puntos usando fórmula de Haversine
+   * @param lat1 - Latitud punto 1
+   * @param lon1 - Longitud punto 1
+   * @param lat2 - Latitud punto 2
+   * @param lon2 - Longitud punto 2
+   * @returns Distancia en kilómetros
+   */
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLon = this.deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return Math.round(distance * 10) / 10; // Redondear a 1 decimal
+  }
+
+  private deg2rad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 
   // =============== MÉTODOS PÚBLICOS ===============

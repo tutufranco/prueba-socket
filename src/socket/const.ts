@@ -86,6 +86,12 @@ export const TRIP_MESSAGE_P_ON = 'trip-message-p-on';
  */
 export const TRIP_PAYMENT_P_SEND = 'trip-payment-p-send';
 
+/**
+ * Pasajero solicita un viaje
+ * Cliente emite → Servidor busca conductores disponibles
+ */
+export const TRIP_REQUEST = 'trip-request';
+
 // ============================================
 // EVENTOS DE CONDUCTOR (Driver Events)
 // ============================================
@@ -170,6 +176,7 @@ export const SOCKET_EVENTS = {
     MESSAGE_ON: TRIP_MESSAGE_P_ON,
     PAYMENT_SEND: TRIP_PAYMENT_P_SEND,
     MESSAGE_SEND: TRIP_MESSAGE_P_SEND,
+    TRIP_REQUEST: TRIP_REQUEST,
   },
   
   // Conductor
@@ -209,7 +216,8 @@ export type PassengerEvent =
   | typeof TRIP_START_AVAILABLE_P_SEND
   | typeof TRIP_MESSAGE_P_ON
   | typeof TRIP_PAYMENT_P_SEND
-  | typeof TRIP_MESSAGE_P_SEND;
+  | typeof TRIP_MESSAGE_P_SEND
+  | typeof TRIP_REQUEST;
 
 /**
  * Tipo union de todos los eventos de conductor
