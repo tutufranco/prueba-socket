@@ -75,31 +75,34 @@ export class ChatGateway {
   handleConnection(client: Socket) {
     this.logger.log(`✅ Cliente conectado: ${client.id}`);
     
-    // Enviar datos del viaje automáticamente al conectar
-    // Enviar tanto para pasajero como conductor para simular el comportamiento
-    const passengerTrip = buildSendTripPassanger({ 
-      trip_status: this.tripChange.tripStatus 
-    });
-    const driverTrip = buildSendTripDriver({ 
-      trip_status: this.tripChange.tripStatus 
-    });
-    
-    // Incluir incidentes y mensajes acumulados
-    passengerTrip.incident = this.incidents;
-    passengerTrip.message = this.messages;
-    passengerTrip.tripChange = this.tripChange;
-    
-    driverTrip.incident = this.incidents;
-    driverTrip.message = this.messages;
-    driverTrip.tripChange = this.tripChange;
-    
-    // Enviar datos para pasajero
-    client.emit(GET_TRIP_P_ON, passengerTrip);
-    this.logger.log(`📤 Enviado get-trip-p-on a ${client.id}`);
-    
-    // Enviar datos para conductor
-    client.emit(GET_TRIP_D_ON, driverTrip);
-    this.logger.log(`📤 Enviado get-trip-d-on a ${client.id}`);
+    // Usar setTimeout para asegurar que el cliente esté completamente conectado
+    setTimeout(() => {
+      // Enviar datos del viaje automáticamente al conectar
+      // Enviar tanto para pasajero como conductor para simular el comportamiento
+      const passengerTrip = buildSendTripPassanger({ 
+        trip_status: this.tripChange.tripStatus 
+      });
+      const driverTrip = buildSendTripDriver({ 
+        trip_status: this.tripChange.tripStatus 
+      });
+      
+      // Incluir incidentes y mensajes acumulados
+      passengerTrip.incident = this.incidents;
+      passengerTrip.message = this.messages;
+      passengerTrip.tripChange = this.tripChange;
+      
+      driverTrip.incident = this.incidents;
+      driverTrip.message = this.messages;
+      driverTrip.tripChange = this.tripChange;
+      
+      // Enviar datos para pasajero
+      client.emit(GET_TRIP_P_ON, passengerTrip);
+      this.logger.log(`📤 Enviado get-trip-p-on a ${client.id}`);
+      
+      // Enviar datos para conductor
+      client.emit(GET_TRIP_D_ON, driverTrip);
+      this.logger.log(`📤 Enviado get-trip-d-on a ${client.id}`);
+    }, 100);
   }
 
   handleDisconnect(client: Socket) {
