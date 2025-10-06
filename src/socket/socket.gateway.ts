@@ -102,7 +102,7 @@ export class ChatGateway {
       // Enviar datos para conductor
       client.emit(GET_TRIP_D_ON, driverTrip);
       this.logger.log(`📤 Enviado get-trip-d-on a ${client.id}`);
-    }, 100);
+    }, 1000);
   }
 
   handleDisconnect(client: Socket) {
